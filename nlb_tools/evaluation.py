@@ -249,7 +249,7 @@ def neg_log_likelihood(rates, spikes, zero_warning=True):
     return np.sum(result)
 
 
-def bits_per_spike(rates, spikes):
+def bits_per_spike(rates, spikes, per_neuron=False):
     """Computes bits per spike of rate predictions given spikes.
     Bits per spike is equal to the difference between the log-likelihoods (in base 2)
     of the rate predictions and the null model (i.e. predicting mean firing rate of each neuron)
@@ -261,12 +261,22 @@ def bits_per_spike(rates, spikes):
         3d numpy array containing rate predictions
     spikes : np.ndarray
         3d numpy array containing true spike counts
+    per_neuron : bool, optional
+        If True, computes bits per spike independently for each active neuron
+        along the last axis and returns the mean across neurons, by default False
 
     Returns
     -------
     float
         Bits per spike of rate predictions
     """
+    if per_neuron:
+        neuron_bps = []
+        for n in range(spikes.shape[-1]):
+            spk_n = spikes[..., n : n + 1]
+            if np.nansum(spk_n) > 0:
+                neuron_bps.append(bits_per_spike(rates[..., n : n + 1], spk_n, per_neuron=False))
+        return float(np.mean(neuron_bps)) if neuron_bps else float("nan")
     nll_model = neg_log_likelihood(rates, spikes)
     null_rates = np.tile(
         np.nanmean(spikes, axis=tuple(range(spikes.ndim - 1)), keepdims=True),

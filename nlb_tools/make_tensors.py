@@ -264,12 +264,18 @@ def make_train_input_tensors(dataset, dataset_name,
         additional data based on provided arguments
     """
     assert isinstance(dataset, NWBDataset), "`dataset` must be an instance of NWBDataset"
-    assert dataset_name in PARAMS.keys(), f"`dataset_name` must be one of {list(PARAMS.keys())}"
+    assert isinstance(dataset_name, dict) or dataset_name in PARAMS.keys() or update_params is not None, \
+        f"`dataset_name` must be one of {list(PARAMS.keys())}, a params dict, or accompanied by `update_params`"
     assert isinstance(trial_split, (pd.Series, np.ndarray, list)) or trial_split in ['train', 'val'], \
         "Invalid `trial_split` argument. Please refer to the documentation for valid choices"
 
     # Fetch and update params
-    params = PARAMS[dataset_name].copy()
+    if isinstance(dataset_name, dict):
+        params = dataset_name.copy()
+    elif dataset_name in PARAMS:
+        params = PARAMS[dataset_name].copy()
+    else:
+        params = {}
     if update_params is not None:
         params.update(update_params)
     # Add filename extension if necessary
@@ -400,12 +406,18 @@ def make_eval_input_tensors(dataset, dataset_name,
         spiking data for indicated trials
     """
     assert isinstance(dataset, NWBDataset), "`dataset` must be an instance of NWBDataset"
-    assert dataset_name in PARAMS.keys(), f"`dataset_name` must be one of {list(PARAMS.keys())}"
+    assert isinstance(dataset_name, dict) or dataset_name in PARAMS.keys() or update_params is not None, \
+        f"`dataset_name` must be one of {list(PARAMS.keys())}, a params dict, or accompanied by `update_params`"
     assert isinstance(trial_split, (pd.Series, np.ndarray, list)) or trial_split in ['train', 'val', 'test'], \
         "Invalid `trial_split` argument. Please refer to the documentation for valid choices"
 
     # Fetch and update params
-    params = PARAMS[dataset_name].copy()
+    if isinstance(dataset_name, dict):
+        params = dataset_name.copy()
+    elif dataset_name in PARAMS:
+        params = PARAMS[dataset_name].copy()
+    else:
+        params = {}
     if update_params is not None:
         params.update(update_params)
     # Add filename extension if necessary
@@ -524,14 +536,20 @@ def make_eval_target_tensors(dataset, dataset_name,
         and behavioral correlates
     """
     assert isinstance(dataset, NWBDataset), "`dataset` must be an instance of NWBDataset"
-    assert dataset_name in PARAMS.keys(), f"`dataset_name` must be one of {list(PARAMS.keys())}"
+    assert isinstance(dataset_name, dict) or dataset_name in PARAMS.keys() or update_params is not None, \
+        f"`dataset_name` must be one of {list(PARAMS.keys())}, a params dict, or accompanied by `update_params`"
     assert isinstance(train_trial_split, (pd.Series, np.ndarray, list)) or train_trial_split in ['train', 'val', 'test'], \
         "Invalid `train_trial_split` argument. Please refer to the documentation for valid choices"
     assert isinstance(eval_trial_split, (pd.Series, np.ndarray, list)) or eval_trial_split in ['train', 'val', 'test'], \
         "Invalid `eval_trial_split` argument. Please refer to the documentation for valid choices"
     
     # Fetch and update params
-    params = PARAMS[dataset_name].copy()
+    if isinstance(dataset_name, dict):
+        params = dataset_name.copy()
+    elif dataset_name in PARAMS:
+        params = PARAMS[dataset_name].copy()
+    else:
+        params = {}
     if update_params is not None:
         params.update(update_params)
     # Add filename extension if necessary
