@@ -559,7 +559,7 @@ def make_eval_target_tensors(dataset, dataset_name,
     # unpack params
     spk_field = params['spk_field']
     hospk_field = params['hospk_field']
-    make_params = params['eval_make_params'].copy()
+    make_params = params.get('eval_make_params', params.get('make_params', {})).copy()
     behavior_source = params['behavior_source']
     behavior_field = params['behavior_field']
     jitter = params.get('jitter', None)
@@ -569,6 +569,7 @@ def make_eval_target_tensors(dataset, dataset_name,
 
     # Properly name output fields based on submission bin width
     suf = '' if (dataset.bin_width == 5) else f'_{dataset.bin_width}'
+    dataset_key = (dataset_name if isinstance(dataset_name, str) else params.get('dataset_name', 'custom')) + suf
     
     # Prep masks
     train_mask = _prep_mask(dataset, train_trial_split)
@@ -649,7 +650,7 @@ def make_eval_target_tensors(dataset, dataset_name,
     
     # Construct data dict
     data_dict = {
-        dataset_name + suf: {
+        dataset_key: {
             'eval_spikes_heldout': eval_dict[hospk_field],
             'train_behavior': train_behavior,
             'eval_behavior': eval_behavior,
@@ -665,8 +666,8 @@ def make_eval_target_tensors(dataset, dataset_name,
             eval_decode_mask = params['decode_masks'](dataset.trial_info[eval_mask])
         else:
             train_decode_mask, eval_decode_mask = params['decode_masks']
-        data_dict[dataset_name + suf]['train_decode_mask'] = train_decode_mask
-        data_dict[dataset_name + suf]['eval_decode_mask'] = eval_decode_mask
+        data_dict[dataset_key]['train_decode_mask'] = train_decode_mask
+        data_dict[dataset_key]['eval_decode_mask'] = eval_decode_mask
         
     # Calculate PSTHs if desired
     if include_psth:
@@ -676,12 +677,12 @@ def make_eval_target_tensors(dataset, dataset_name,
         else:
             (train_cond_idx, eval_cond_idx), psths, comb = _make_psth(dataset, train_mask, eval_mask, ignore_mask, **psth_params)
             
-            data_dict[dataset_name + suf]['eval_cond_idx'] = eval_cond_idx
-            data_dict[dataset_name + suf]['train_cond_idx'] = train_cond_idx
-            data_dict[dataset_name + suf]['psth'] = psths
+            data_dict[dataset_key]['eval_cond_idx'] = eval_cond_idx
+            data_dict[dataset_key]['train_cond_idx'] = train_cond_idx
+            data_dict[dataset_key]['psth'] = psths
             if jitter is not None:
-                data_dict[dataset_name + suf]['eval_jitter'] = (eval_jitter_vals / dataset.bin_width).round().astype(int)
-                data_dict[dataset_name + suf]['train_jitter'] = (train_jitter_vals / dataset.bin_width).round().astype(int)
+                data_dict[dataset_key]['eval_jitter'] = (eval_jitter_vals / dataset.bin_width).round().astype(int)
+                data_dict[dataset_key]['train_jitter'] = (train_jitter_vals / dataset.bin_width).round().astype(int)
 
     # Delete jitter column
     if jitter is not None:
